@@ -5,27 +5,20 @@
 **Observable** is the easiest way to observe values in Swift.
 
 ## How to
-
-### Create an Observable 
-
-```swift
-var position = Observable(CGPoint.zero)
-```
-
-### Create an ImmutableObservable 
-Using `ImmutableObservable` we can create an "readonly"-Observable, in order to avoid side-effects on our internal API. 
-
+### Create an Observable and MutableObservable 
+Using `MutableObservable` you can create and observe event.
+Using `Observable` you can observe event, in order to avoid side-effects on our internal API. 
 ```swift
 class SomeViewModel {
     /// Public property, that can be read / observed by external classes (e.g. view controller), but not changed.
-    var position: ImmutableObservable<CGPoint> = {
+    var position: Observable<CGPoint> = {
         return positionSubject
     }
-    // Or use the helper method Observable.asImmutable()
-    // lazy var position = positionSubject.asImmutable()
+    // Or use the helper method Observable.asObservable()
+    // lazy var position = positionSubject.asObservable()
 
     /// Private property, that can be changed / observed inside this view model.
-    private let positionSubject = Observable(CGPoint.zero)
+    private let positionSubject = MutableObservable(CGPoint.zero)
 }
 ```
 
@@ -40,6 +33,27 @@ let observable = Observable([URL]()) {
 }
 ```
 
+### Model Properties as @MutableObservable
+
+Now mark your binded/mapped properties as observable and export public observable
+
+```swift
+//Private Observer
+@MutableObservable var text: String = "Test"
+
+//add observer
+
+_text.observe { (newValue, oldValue) in
+    print(newValue)
+}.add(to: &disposable)
+        
+//Public Observer
+
+var textObserve: ImmutableObservable<String> {
+    return _text
+}
+
+```
 ### Add an observer
 
 ```swift
@@ -59,7 +73,17 @@ position.observe(DispatchQueue.main) { p in
 ### Change the value
 
 ```swift
-position.value = p
+position.wrappedValue = p
+```
+
+### Stop observing new values
+
+```swift
+position.observe {
+    // This will stop all observers added to `disposal`
+    self.disposal.dispose()
+}.add(to: &disposal)
+
 ```
 
 ## Memory management
@@ -93,6 +117,27 @@ it, simply add the following line to your Podfile:
 ```ruby
 pod 'Observable'
 ```
+
+### Swift Package Manager
+
+**Observable** is available through `Swift Package Manager`.
+[Swift Package Manager](https://swift.org/package-manager/) (SwiftPM) is a tool for automating the distribution of Swift code. 
+It is integrated into the swift compiler and from Xcode 11, SwiftPM got natively integrated with Xcode.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/roberthein/Observable", from: "VERSION")
+]
+```
+
+## Migrations
+
+### 1.x.y to 2.0.0
+- `Observable` is now `MutableObservable`
+- `ImmutableObservable` is now `Observable`
+- `Observable.asImmutableObservable()` is now `Observable.asObservable()`
+- `Observable.value` is now `Observable.wrappedValue`
+
 
 ## Suggestions or feedback?
 
