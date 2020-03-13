@@ -57,7 +57,7 @@ public class Observable<T> {
         let id = uniqueID.next()!
         
         observers[id] = (observer, queue)
-        notify(observer: observer, queue: queue, value: wrappedValue)
+//        notify(observer: observer, queue: queue, value: wrappedValue)
         
         let disposable = Disposable { [weak self] in
             self?.observers[id] = nil
@@ -103,6 +103,11 @@ public class MutableObservable<T>: Observable<T> {
             defer { lock.unlock() }
             _value = newValue
         }
+    }
+    
+    public var projectedValue: MutableObservable<T>
+    {
+        self
     }
     
     @available(*, deprecated, renamed: "wrappedValue")
